@@ -1,0 +1,318 @@
+syntax = "proto3";
+
+package grpc_storage;
+option go_package="gogcli/storagegrpc";
+
+enum Os {
+    UNSPECIFIED = 0;
+    WINDOWS = 1;
+    MACOS = 2;
+    LINUX = 3;
+}
+
+message GameInfo {
+	int64 Id = 1;
+	string Slug = 2;
+	string Title = 3;
+}
+
+message FileInfo {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+    int64  Size = 5;
+    string Checksum = 6;
+}
+
+message FileInfoNoCheck {
+    GameInfo Game = 1;
+    string Kind = 2;
+    string Name = 3;
+    string Url = 4;
+}
+
+message StorageListingGame {
+	GameInfo Game = 1;
+    repeated FileInfo Installers = 2;
+    repeated FileInfo Extras = 3;
+}
+
+message ManifestGameInstaller {
+    string Name = 1;
+    string Title = 2;
+    string Url = 3;
+    Os TargetOs = 4;
+    repeated string Languages = 5;
+    string Version = 6;
+    string Date = 7;
+    string EstimatedSize = 8;
+    int64 VerifiedSize = 9;
+    string Checksum = 10;
+}
+
+message ManifestGameExtra {
+    string Name = 1;
+    string Title = 2;
+    string Url = 3;
+    string Type = 4;
+    int64 Info = 5;
+    string EstimatedSize = 6;
+    int64 VerifiedSize = 7;
+    string Checksum = 8;
+}
+
+message ManifestGame {
+    int64 Id = 1;
+    string Slug = 2;
+    string Title = 3;
+    string CdKey = 4;
+    repeated string Tags = 5;
+    repeated ManifestGameInstaller Installers = 6;
+    repeated ManifestGameExtra Extras = 7;
+    string EstimatedSize = 8;
+    int64 VerifiedSize = 9;
+}
+
+message ManifestFilter {
+    repeated string Titles = 1;
+    repeated Os Oses = 2;
+    repeated string Languages = 3;
+    repeated string Tags = 4;
+    bool Installers = 5;
+    bool Extras = 6;
+    repeated string ExtraTypes = 7;
+    repeated ManifestFilter Intersections = 8;
+}
+
+message FileAction {
+    string Title = 1;
+    string Name = 2;
+    string Url = 3;
+    string Kind = 4;
+    string Action = 5;
+}
+
+message GameAction {
+    string Title = 1;
+    string Slug = 2;
+    int64 Id = 3;
+    string Action = 4;
+    repeated FileAction InstallerActions = 5;
+    repeated FileAction ExtraActions = 6;
+}
+
+message S3Configs {
+    string Endpoint = 1;
+    string Region = 2;
+    string Bucket = 3;
+    bool Tls = 4;
+    string AccessKey = 5;
+    string SecretKey = 6;
+}
+
+message GrpcConfigs {
+    string Endpoint = 1;
+}
+
+message Source {
+    string Type = 1;
+    S3Configs S3Params = 2;
+    string FsPath = 3;
+    GrpcConfigs GrpcParams = 4;
+}
+
+message ManifestOverview {
+    string EstimatedSize = 2;
+    int64 VerifiedSize = 3;
+    ManifestFilter Filter = 4;
+}
+
+message Manifest {
+    oneof content {
+        ManifestGame Game = 1;
+        ManifestOverview Overview = 2;
+    }
+}
+
+message FileUpload {
+    oneof content {
+        FileInfo File = 1;
+        bytes Data = 2;
+    }
+}
+
+message FileDownload {
+    oneof content {
+        int64 ExpectedSize = 1;
+        bytes Data = 2;
+    }
+}
+
+message GetGameIdsRequest {}
+
+message GetGameIdsResponse {
+    repeated int64 Ids = 1;
+}
+
+message GetGameFilesRequest {
+    int64 GameId = 1;
+}
+
+message GetGameFilesResponse {
+    repeated FileInfo Files = 1;
+}
+
+message IsSelfValidatingRequest {}
+
+message IsSelfValidatingResponse {
+    bool IsSelfValidating = 1;
+}
+
+message GetPrintableSummaryRequest {}
+
+message GetPrintableSummaryResponse {
+    string Summary = 1;
+}
+
+message ExistsRequest {}
+
+message ExistsResponse {
+    bool Exists = 1;
+}
+
+message InitializeRequest {}
+
+message InitializeResponse {}
+
+message HasManifestRequest {}
+
+message HasManifestResponse {
+    bool HasManifest = 1;
+}
+
+message HasActionsRequest {}
+
+message HasActionsResponse {
+    bool HasActions = 1;
+}
+
+message HasSourceRequest {}
+
+message HasSourceResponse {
+    bool HasSource = 1;
+}
+
+/*
+The first message is expected to be an overview and after that games
+*/
+message StoreManifestRequest {
+    Manifest Manifest = 1;
+}
+
+message StoreManifestResponse {}
+
+message StoreActionsRequest {
+    GameAction GameAction = 1;
+}
+
+message StoreActionsResponse {}
+
+message StoreSourceRequest {
+    Source Source = 1;
+}
+
+message StoreSourceResponse {}
+
+message LoadManifestRequest {}
+
+/*
+The first message is expected to be an overview and after that games
+*/
+message LoadManifestResponse {
+    Manifest Manifest = 1;
+}
+
+message LoadActionsRequest {}
+message LoadActionsResponse {
+    GameAction GameAction = 1;
+}
+
+message LoadSourceRequest {}
+
+message LoadSourceResponse {
+    Source Source = 1;
+}
+
+message RemoveActionsRequest {}
+
+message RemoveActionsResponse {}
+
+message RemoveSourceRequest {}
+
+message RemoveSourceResponse {}
+
+message AddGameRequest {
+    GameInfo Game = 1;
+}
+
+message AddGameResponse {}
+
+message RemoveGameRequest {
+    GameInfo Game = 1;
+}
+
+message RemoveGameResponse {}
+
+/*
+The first message is expected to be File and after that Data
+*/
+message UploadFileRequest {
+    FileUpload Upload = 1;
+}
+
+message UploadFileResponse {
+    string Checksum = 1;
+}
+
+message RemoveFileRequest {
+    FileInfoNoCheck File = 1;
+}
+
+message RemoveFileResponse {}
+
+message DownloadFileRequest {
+    FileInfo File = 1;
+}
+
+/*
+The first message is expected to be ExpectedSize and after that Data
+*/
+message DownloadFileResponse {
+    FileDownload Download = 1;
+}
+
+service StorageService {
+    rpc GetGameIds(GetGameIdsRequest) returns (GetGameIdsResponse) {};
+    rpc GetGameFiles(GetGameFilesRequest) returns (GetGameFilesResponse) {};
+    rpc IsSelfValidating(IsSelfValidatingRequest) returns (IsSelfValidatingResponse) {};
+    rpc GetPrintableSummary(GetPrintableSummaryRequest) returns (GetPrintableSummaryResponse) {};
+    rpc Exists(ExistsRequest) returns (ExistsResponse) {};
+    rpc Initialize(InitializeRequest) returns (InitializeResponse) {};
+    rpc HasManifest(HasManifestRequest) returns (HasManifestResponse) {};
+    rpc HasActions(HasActionsRequest) returns (HasActionsResponse) {};
+    rpc HasSource(HasSourceRequest) returns (HasSourceResponse) {};
+    rpc StoreManifest(stream StoreManifestRequest) returns (StoreManifestResponse) {};
+    rpc StoreActions(stream StoreActionsRequest) returns (StoreActionsResponse) {};
+    rpc StoreSource(StoreSourceRequest) returns (StoreSourceResponse) {};
+    rpc LoadManifest(LoadManifestRequest) returns (stream LoadManifestResponse) {};
+    rpc LoadActions(LoadActionsRequest) returns (stream LoadActionsResponse) {};
+    rpc LoadSource(LoadSourceRequest) returns (LoadSourceResponse) {};
+    rpc RemoveActions(RemoveActionsRequest) returns (RemoveActionsResponse) {};
+    rpc RemoveSource(RemoveSourceRequest) returns (RemoveSourceResponse) {};
+    rpc AddGame(AddGameRequest) returns (AddGameResponse) {};
+    rpc RemoveGame(RemoveGameRequest) returns (RemoveGameResponse) {};
+    rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse) {};
+    rpc RemoveFile(RemoveFileRequest) returns (RemoveFileResponse) {};
+    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse) {};
+}

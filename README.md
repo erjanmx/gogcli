@@ -254,7 +254,7 @@ After that, you want to update your manifest with your updates, by typing:
 gogcli manifest update --update=updates.json
 ```
 
-Now, you are ready to apply the modifed manifest. Before that, you may wish to run a plan to look at the actions that will run against your storage by typing:
+Now, you are ready to apply the modified manifest. Before that, you may wish to run a plan to look at the actions that will run against your storage by typing:
 
 ```
 gogcli storage plan --path=/home/eric/games --storage=fs
@@ -268,7 +268,7 @@ gogcli storage plan --empty-checksum --path=/home/eric/games --storage=fs
 
 The actions will be in the **actions.json** file.
 
-You can apply your modifed manifest by typing:
+You can apply your modified manifest by typing:
 
 ```
 gogcli storage apply manifest --path=/home/eric/games --storage=fs
